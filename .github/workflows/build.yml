@@ -1,7 +1,7 @@
 name: Build Kivy APK
 
 on:
-  workflow_dispatch:   # lets you trigger manually from GitHub
+  workflow_dispatch:
 
 jobs:
   build:
@@ -23,19 +23,20 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython virtualenv
 
-          # Install Android SDK (command-line tools)
-          mkdir -p $HOME/android-sdk
-          cd $HOME/android-sdk
+          # Install Android SDK command-line tools
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          cd $HOME/android-sdk/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdtools.zip
-          unzip cmdtools.zip -d cmdline-tools
-          mkdir -p cmdline-tools/latest
-          mv cmdline-tools/* cmdline-tools/latest/ || true
+          unzip -q cmdtools.zip
+          mv cmdline-tools latest
 
-          # Set environment variables
-          echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH" >> $GITHUB_ENV
+          # Add Android SDK to environment
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-          # Accept licenses & install required packages
+      - name: Install Android SDK packages
+        run: |
           yes | sdkmanager --sdk_root=$HOME/android-sdk --licenses
           sdkmanager --sdk_root=$HOME/android-sdk "platform-tools" "platforms;android-31" "build-tools;31.0.0"
 
