@@ -5,6 +5,11 @@ package.name = calculator
 package.domain = org.example
 version = 0.1
 
+# Force Buildozer to use the modern SDK/NDK path
+android.sdk_path = $HOME/android-sdk
+android.ndk_path = $HOME/.buildozer/android/platform/android-ndk-r25b
+android.ndk_api = 21
+
 # The main .py file
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
@@ -21,7 +26,6 @@ fullscreen = 0
 # Android specific
 android.api = 31
 android.minapi = 21
-android.ndk = 23b
 android.archs = arm64-v8a, armeabi-v7a
 android.permissions = INTERNET
 

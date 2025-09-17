@@ -44,9 +44,11 @@ jobs:
             "platforms;android-31" \
             "build-tools;31.0.0"
 
-          # Link SDK into Buildozer's expected location
-          mkdir -p $HOME/.buildozer/android/platform
-          ln -sfn $HOME/android-sdk $HOME/.buildozer/android/platform/android-sdk
+          # Create symlink for backwards compatibility
+          mkdir -p $HOME/android-sdk/tools/bin
+          ln -sfn $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager $HOME/android-sdk/tools/bin/sdkmanager
+          ln -sfn $HOME/android-sdk/cmdline-tools/latest/bin/avdmanager $HOME/android-sdk/tools/bin/avdmanager
+
 
       - name: Build APK
         run: |
