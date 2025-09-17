@@ -1,8 +1,9 @@
 [app]
 # App details
-title = My Kivy App
-package.name = mykivyapp
+title = Compounding Calculator
+package.name = calculator
 package.domain = org.example
+version = 0.1
 
 # The main .py file
 source.dir = .
