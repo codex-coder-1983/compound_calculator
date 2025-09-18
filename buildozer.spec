@@ -25,6 +25,7 @@ android.permissions = INTERNET
 [buildozer]
 log_level = 2
 warn_on_root = 1
+verbose = 1
 
 # Tell buildozer to look in cmdline-tools (not tools/bin which doesn’t exist anymore)
 bin_path = /home/runner/android-sdk/cmdline-tools/latest/bin:/home/runner/android-sdk/platform-tools
