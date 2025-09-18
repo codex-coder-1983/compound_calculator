@@ -28,6 +28,11 @@ jobs:
           echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
           echo "/usr/local/lib/android/sdk/build-tools/31.0.0" >> $GITHUB_PATH
 
+          # Create legacy path for Buildozer compatibility
+          mkdir -p /usr/local/lib/android/sdk/tools/bin
+          ln -s /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
+          ln -s /usr/local/lib/android/sdk/cmdline-tools/latest/bin/avdmanager /usr/local/lib/android/sdk/tools/bin/avdmanager
+
       - name: Install Android SDK packages
         run: |
           yes | sdkmanager --sdk_root=/usr/local/lib/android/sdk --licenses
