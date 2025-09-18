@@ -23,12 +23,14 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython virtualenv
 
+          # Add Android SDK tools to PATH
+          echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
+          echo "/usr/local/lib/android/sdk/build-tools/31.0.0" >> $GITHUB_PATH
+
       - name: Install Android SDK packages
         run: |
-          # Accept licenses
           yes | sdkmanager --sdk_root=/usr/local/lib/android/sdk --licenses
-
-          # Ensure required components are installed
           sdkmanager --sdk_root=/usr/local/lib/android/sdk \
             "platform-tools" \
             "platforms;android-31" \
