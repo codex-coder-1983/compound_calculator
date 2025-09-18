@@ -4,9 +4,9 @@ package.name = calculator
 package.domain = org.example
 version = 0.1
 
-# Force Buildozer to use manually installed SDK/NDK
-android.sdk_path = $HOME/android-sdk
-android.ndk_path = $HOME/android-sdk/android-ndk-r25b
+# Use GitHub runner’s installed Android SDK/NDK
+android.sdk_path = /home/runner/android-sdk
+android.ndk_path = /home/runner/android-sdk/android-ndk-r25b
 android.ndk_api = 21
 
 source.dir = .
@@ -25,3 +25,6 @@ android.permissions = INTERNET
 [buildozer]
 log_level = 2
 warn_on_root = 1
+
+# Tell buildozer to look in cmdline-tools (not tools/bin which doesn’t exist anymore)
+bin_path = /home/runner/android-sdk/cmdline-tools/latest/bin:/home/runner/android-sdk/platform-tools
