@@ -3,123 +3,113 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
-from kivy.properties import StringProperty
+from kivy.uix.widget import Widget
 from kivy.graphics import Color, RoundedRectangle
 
 
-class Card(BoxLayout):
-    """A simple card-style container with rounded corners and background."""
+class RoundedBox(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.padding = 10
-        self.size_hint_y = None
-        self.height = 120
         with self.canvas.before:
-            Color(0.95, 0.95, 0.95, 1)  # light gray background
-            self.bg = RoundedRectangle(radius=[12])
-        self.bind(pos=self.update_bg, size=self.update_bg)
+            Color(1, 1, 1, 1)  # white background
+            self.rect = RoundedRectangle(radius=[15], pos=self.pos, size=self.size)
+        self.bind(pos=self.update_rect, size=self.update_rect)
 
-    def update_bg(self, *args):
-        self.bg.pos = self.pos
-        self.bg.size = self.size
+    def update_rect(self, *args):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
 
-class CalculatorLayout(BoxLayout):
-    result_text = StringProperty("")
+class RoundedTextInput(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.padding = 5
+        self.orientation = "vertical"
+        self.rounded = RoundedBox()
+        self.add_widget(self.rounded)
+        self.textinput = TextInput(
+            multiline=False,
+            background_color=(0, 0, 0, 0),  # transparent background
+            foreground_color=(0, 0, 0, 1),
+            size_hint=(1, 1)
+        )
+        self.add_widget(self.textinput)
 
+
+class RoundedButton(Button):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.background_normal = ''
+        self.background_down = ''
+        self.background_color = (0.2, 0.6, 0.9, 1)  # blue button
+        self.color = (1, 1, 1, 1)  # white text
+        self.font_size = 18
+        self.bind(size=self.update_canvas, pos=self.update_canvas)
+
+    def update_canvas(self, *args):
+        self.canvas.before.clear()
+        with self.canvas.before:
+            Color(*self.background_color)
+            RoundedRectangle(pos=self.pos, size=self.size, radius=[15])
+
+
+class CompoundingCalculator(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.orientation = "vertical"
         self.padding = 20
         self.spacing = 15
 
-        # Helper to create a label + input row
-        def make_row(label_text, default="", input_filter=None):
-            row = BoxLayout(orientation="horizontal", spacing=10, size_hint_y=None, height=50)
-            label = Label(text=label_text, font_size=18, size_hint_x=0.6, halign="right", valign="middle")
-            label.bind(size=label.setter("text_size"))  # align text properly
-            entry = TextInput(text=default, multiline=False, input_filter=input_filter,
-                              font_size=18, size_hint_x=0.4)
-            row.add_widget(label)
-            row.add_widget(entry)
-            return row, entry
+        # Title
+        self.add_widget(Label(text="Compounding Calculator",
+                              font_size=24,
+                              bold=True,
+                              size_hint=(1, None),
+                              height=40))
 
         # Fields
-        row1, self.entry_contribution = make_row("Monthly Contribution:", "1000", "float")
-        row2, self.entry_current_age = make_row("Current Age:", "30", "int")
-        row3, self.entry_retirement_age = make_row("Retirement Age:", "60", "int")
-        row4, self.entry_interest = make_row("Yearly Interest (%):", "6.0", "float")
+        self.monthly = self.add_field("Monthly Contribution:")
+        self.current_age = self.add_field("Current Age:")
+        self.retirement_age = self.add_field("Retirement Age:")
+        self.interest = self.add_field("Yearly Interest (%):")
 
-        self.add_widget(row1)
-        self.add_widget(row2)
-        self.add_widget(row3)
-        self.add_widget(row4)
+        # Buttons
+        btn_layout = BoxLayout(size_hint=(1, None), height=50, spacing=20)
+        btn_layout.add_widget(RoundedButton(text="Calculate"))
+        btn_layout.add_widget(RoundedButton(text="Clear"))
+        self.add_widget(btn_layout)
 
-        # Buttons row
-        button_row = BoxLayout(orientation="horizontal", spacing=15, size_hint_y=None, height=60)
-        calc_btn = Button(text="Calculate", font_size=18, on_press=self.calculate_savings)
-        clear_btn = Button(text="Clear", font_size=18, on_press=self.clear_fields)
-        button_row.add_widget(calc_btn)
-        button_row.add_widget(clear_btn)
-        self.add_widget(button_row)
+        # Output area
+        self.output = Label(text="Future value:\nTotal contributions:\nInterest earned:",
+                            halign="left",
+                            valign="top",
+                            size_hint=(1, None),
+                            height=120)
+        with self.output.canvas.before:
+            Color(1, 1, 1, 1)
+            self.bg = RoundedRectangle(radius=[15], pos=self.output.pos, size=self.output.size)
+        self.output.bind(pos=self.update_output, size=self.update_output)
+        self.add_widget(self.output)
 
-        # Result area inside card
-        self.result_card = Card(orientation="vertical")
-        self.result_label = Label(text=self.result_text, halign="left", valign="top",
-                                  font_size=16, color=(0, 0, 0, 1))
-        self.result_label.bind(size=self.result_label.setter("text_size"))  # wrap text
-        self.result_card.add_widget(self.result_label)
-        self.add_widget(self.result_card)
+    def add_field(self, label_text):
+        self.add_widget(Label(text=label_text,
+                              font_size=16,
+                              bold=True,
+                              size_hint=(1, None),
+                              height=30,
+                              halign="left"))
+        field = RoundedTextInput(size_hint=(1, None), height=50)
+        self.add_widget(field)
+        return field
 
-    def calculate_savings(self, instance):
-        try:
-            monthly_contribution = float(self.entry_contribution.text or 0)
-            current_age = int(self.entry_current_age.text or 0)
-            retirement_age = int(self.entry_retirement_age.text or 0)
-            yearly_interest = float(self.entry_interest.text or 0) / 100.0
-
-            if retirement_age <= current_age:
-                self.result_label.color = (1, 0, 0, 1)  # red
-                self.result_label.text = "Retirement age must be greater than current age."
-                return
-            if monthly_contribution < 0 or yearly_interest < 0:
-                self.result_label.color = (1, 0, 0, 1)
-                self.result_label.text = "Please enter non-negative numbers."
-                return
-
-            years = retirement_age - current_age
-            months = years * 12
-            monthly_rate = yearly_interest / 12.0
-
-            if monthly_rate != 0:
-                future_value = monthly_contribution * ((1 + monthly_rate) ** months - 1) / monthly_rate
-            else:
-                future_value = monthly_contribution * months
-
-            total_contrib = monthly_contribution * months
-            interest_earned = future_value - total_contrib
-
-            self.result_label.color = (0, 0, 0.5, 1)  # dark blue
-            self.result_label.text = (
-                f"Future value:        {future_value:,.2f}\n"
-                f"Total contributions: {total_contrib:,.2f}\n"
-                f"Interest earned:     {interest_earned:,.2f}"
-            )
-        except ValueError:
-            self.result_label.color = (1, 0, 0, 1)
-            self.result_label.text = "Please enter valid numbers."
-
-    def clear_fields(self, instance):
-        self.entry_contribution.text = ""
-        self.entry_current_age.text = ""
-        self.entry_retirement_age.text = ""
-        self.entry_interest.text = ""
-        self.result_label.text = ""
+    def update_output(self, *args):
+        self.bg.pos = self.output.pos
+        self.bg.size = self.output.size
 
 
 class CompoundingApp(App):
     def build(self):
-        return CalculatorLayout()
+        return CompoundingCalculator()
 
 
 if __name__ == "__main__":
