@@ -4,9 +4,9 @@ package.name = calculator
 package.domain = org.example
 version = 0.1
 
-# Use GitHub runner’s preinstalled SDK/NDK
-android.sdk_path = /usr/local/lib/android/sdk
-android.ndk_path = /usr/local/lib/android/sdk/ndk/27.3.13750724
+# Force Buildozer to use manually installed SDK/NDK
+android.sdk_path = $HOME/android-sdk
+android.ndk_path = $HOME/android-sdk/android-ndk-r25b
 android.ndk_api = 21
 
 source.dir = .
