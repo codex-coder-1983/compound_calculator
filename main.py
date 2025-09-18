@@ -4,6 +4,24 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.properties import StringProperty
+from kivy.graphics import Color, RoundedRectangle
+
+
+class Card(BoxLayout):
+    """A simple card-style container with rounded corners and background."""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.padding = 10
+        self.size_hint_y = None
+        self.height = 120
+        with self.canvas.before:
+            Color(0.95, 0.95, 0.95, 1)  # light gray background
+            self.bg = RoundedRectangle(radius=[12])
+        self.bind(pos=self.update_bg, size=self.update_bg)
+
+    def update_bg(self, *args):
+        self.bg.pos = self.pos
+        self.bg.size = self.size
 
 
 class CalculatorLayout(BoxLayout):
@@ -12,41 +30,46 @@ class CalculatorLayout(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.orientation = "vertical"
-        self.padding = 16
-        self.spacing = 10
+        self.padding = 20
+        self.spacing = 15
 
-        # Monthly contribution
-        self.add_widget(Label(text="Monthly Contribution:"))
-        self.entry_contribution = TextInput(text="1000", multiline=False, input_filter="float")
-        self.add_widget(self.entry_contribution)
+        # Helper to create a label + input row
+        def make_row(label_text, default="", input_filter=None):
+            row = BoxLayout(orientation="horizontal", spacing=10, size_hint_y=None, height=50)
+            label = Label(text=label_text, font_size=18, size_hint_x=0.6, halign="right", valign="middle")
+            label.bind(size=label.setter("text_size"))  # align text properly
+            entry = TextInput(text=default, multiline=False, input_filter=input_filter,
+                              font_size=18, size_hint_x=0.4)
+            row.add_widget(label)
+            row.add_widget(entry)
+            return row, entry
 
-        # Current age
-        self.add_widget(Label(text="Current Age:"))
-        self.entry_current_age = TextInput(text="30", multiline=False, input_filter="int")
-        self.add_widget(self.entry_current_age)
+        # Fields
+        row1, self.entry_contribution = make_row("Monthly Contribution:", "1000", "float")
+        row2, self.entry_current_age = make_row("Current Age:", "30", "int")
+        row3, self.entry_retirement_age = make_row("Retirement Age:", "60", "int")
+        row4, self.entry_interest = make_row("Yearly Interest (%):", "6.0", "float")
 
-        # Retirement age
-        self.add_widget(Label(text="Retirement Age:"))
-        self.entry_retirement_age = TextInput(text="60", multiline=False, input_filter="int")
-        self.add_widget(self.entry_retirement_age)
-
-        # Yearly interest
-        self.add_widget(Label(text="Yearly Interest (%):"))
-        self.entry_interest = TextInput(text="6.0", multiline=False, input_filter="float")
-        self.add_widget(self.entry_interest)
+        self.add_widget(row1)
+        self.add_widget(row2)
+        self.add_widget(row3)
+        self.add_widget(row4)
 
         # Buttons row
-        button_row = BoxLayout(orientation="horizontal", spacing=10, size_hint_y=None, height=50)
-        calc_btn = Button(text="Calculate", on_press=self.calculate_savings)
-        clear_btn = Button(text="Clear", on_press=self.clear_fields)
+        button_row = BoxLayout(orientation="horizontal", spacing=15, size_hint_y=None, height=60)
+        calc_btn = Button(text="Calculate", font_size=18, on_press=self.calculate_savings)
+        clear_btn = Button(text="Clear", font_size=18, on_press=self.clear_fields)
         button_row.add_widget(calc_btn)
         button_row.add_widget(clear_btn)
         self.add_widget(button_row)
 
-        # Result area
-        self.result_label = Label(text=self.result_text, halign="left", valign="top")
+        # Result area inside card
+        self.result_card = Card(orientation="vertical")
+        self.result_label = Label(text=self.result_text, halign="left", valign="top",
+                                  font_size=16, color=(0, 0, 0, 1))
         self.result_label.bind(size=self.result_label.setter("text_size"))  # wrap text
-        self.add_widget(self.result_label)
+        self.result_card.add_widget(self.result_label)
+        self.add_widget(self.result_card)
 
     def calculate_savings(self, instance):
         try:
@@ -78,9 +101,9 @@ class CalculatorLayout(BoxLayout):
 
             self.result_label.color = (0, 0, 0.5, 1)  # dark blue
             self.result_label.text = (
-                f"Future value:          {future_value:,.2f}\n"
-                f"Total contributions:   {total_contrib:,.2f}\n"
-                f"Interest earned:       {interest_earned:,.2f}"
+                f"Future value:        {future_value:,.2f}\n"
+                f"Total contributions: {total_contrib:,.2f}\n"
+                f"Interest earned:     {interest_earned:,.2f}"
             )
         except ValueError:
             self.result_label.color = (1, 0, 0, 1)
