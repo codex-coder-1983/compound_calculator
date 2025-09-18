@@ -3,42 +3,64 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
+from kivy.properties import StringProperty
 
 
-class SavingsCalculator(BoxLayout):
+class CalculatorLayout(BoxLayout):
+    result_text = StringProperty("")
+
     def __init__(self, **kwargs):
-        super().__init__(orientation="vertical", padding=20, spacing=10, **kwargs)
+        super().__init__(**kwargs)
+        self.orientation = "vertical"
+        self.padding = 16
+        self.spacing = 10
 
-        # Inputs
-        self.contribution = TextInput(hint_text="Monthly Contribution", multiline=False)
-        self.current_age = TextInput(hint_text="Current Age", multiline=False)
-        self.retirement_age = TextInput(hint_text="Retirement Age", multiline=False)
-        self.interest = TextInput(hint_text="Yearly Interest (%)", multiline=False)
+        # Monthly contribution
+        self.add_widget(Label(text="Monthly Contribution:"))
+        self.entry_contribution = TextInput(text="1000", multiline=False, input_filter="float")
+        self.add_widget(self.entry_contribution)
 
-        # Add inputs to layout
-        for field in [self.contribution, self.current_age, self.retirement_age, self.interest]:
-            self.add_widget(field)
+        # Current age
+        self.add_widget(Label(text="Current Age:"))
+        self.entry_current_age = TextInput(text="30", multiline=False, input_filter="int")
+        self.add_widget(self.entry_current_age)
 
-        # Button
-        calc_button = Button(text="Calculate", size_hint=(1, None), height=50)
-        calc_button.bind(on_press=self.calculate_savings)
-        self.add_widget(calc_button)
+        # Retirement age
+        self.add_widget(Label(text="Retirement Age:"))
+        self.entry_retirement_age = TextInput(text="60", multiline=False, input_filter="int")
+        self.add_widget(self.entry_retirement_age)
 
-        # Result label
-        self.result_label = Label(text="", halign="left", valign="middle")
+        # Yearly interest
+        self.add_widget(Label(text="Yearly Interest (%):"))
+        self.entry_interest = TextInput(text="6.0", multiline=False, input_filter="float")
+        self.add_widget(self.entry_interest)
+
+        # Buttons row
+        button_row = BoxLayout(orientation="horizontal", spacing=10, size_hint_y=None, height=50)
+        calc_btn = Button(text="Calculate", on_press=self.calculate_savings)
+        clear_btn = Button(text="Clear", on_press=self.clear_fields)
+        button_row.add_widget(calc_btn)
+        button_row.add_widget(clear_btn)
+        self.add_widget(button_row)
+
+        # Result area
+        self.result_label = Label(text=self.result_text, halign="left", valign="top")
+        self.result_label.bind(size=self.result_label.setter("text_size"))  # wrap text
         self.add_widget(self.result_label)
 
     def calculate_savings(self, instance):
         try:
-            monthly_contribution = float(self.contribution.text)
-            current_age = int(self.current_age.text)
-            retirement_age = int(self.retirement_age.text)
-            yearly_interest = float(self.interest.text) / 100.0
+            monthly_contribution = float(self.entry_contribution.text or 0)
+            current_age = int(self.entry_current_age.text or 0)
+            retirement_age = int(self.entry_retirement_age.text or 0)
+            yearly_interest = float(self.entry_interest.text or 0) / 100.0
 
             if retirement_age <= current_age:
+                self.result_label.color = (1, 0, 0, 1)  # red
                 self.result_label.text = "Retirement age must be greater than current age."
                 return
             if monthly_contribution < 0 or yearly_interest < 0:
+                self.result_label.color = (1, 0, 0, 1)
                 self.result_label.text = "Please enter non-negative numbers."
                 return
 
@@ -47,26 +69,35 @@ class SavingsCalculator(BoxLayout):
             monthly_rate = yearly_interest / 12.0
 
             if monthly_rate != 0:
-                future_value = monthly_contribution * ((1 + monthly_rate)**months - 1) / monthly_rate
+                future_value = monthly_contribution * ((1 + monthly_rate) ** months - 1) / monthly_rate
             else:
                 future_value = monthly_contribution * months
 
             total_contrib = monthly_contribution * months
             interest_earned = future_value - total_contrib
 
+            self.result_label.color = (0, 0, 0.5, 1)  # dark blue
             self.result_label.text = (
-                f"Future value: {future_value:,.2f}\n"
-                f"Total contributions: {total_contrib:,.2f}\n"
-                f"Interest earned: {interest_earned:,.2f}"
+                f"Future value:          {future_value:,.2f}\n"
+                f"Total contributions:   {total_contrib:,.2f}\n"
+                f"Interest earned:       {interest_earned:,.2f}"
             )
         except ValueError:
+            self.result_label.color = (1, 0, 0, 1)
             self.result_label.text = "Please enter valid numbers."
 
+    def clear_fields(self, instance):
+        self.entry_contribution.text = ""
+        self.entry_current_age.text = ""
+        self.entry_retirement_age.text = ""
+        self.entry_interest.text = ""
+        self.result_label.text = ""
 
-class SavingsApp(App):
+
+class CompoundingApp(App):
     def build(self):
-        return SavingsCalculator()
+        return CalculatorLayout()
 
 
 if __name__ == "__main__":
-    SavingsApp().run()
+    CompoundingApp().run()
