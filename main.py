@@ -1,18 +1,70 @@
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
+from kivy.lang import Builder
+from kivy.metrics import dp
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
-from kivy.uix.widget import Widget
+from kivy.uix.label import Label
 from kivy.graphics import Color, RoundedRectangle
+import math
 
+KV = """
+BoxLayout:
+    orientation: "vertical"
+    padding: dp(20)
+    spacing: dp(15)
 
-class RoundedBox(Widget):
+    # Title
+    Label:
+        text: "Compounding Calculator"
+        font_size: "22sp"
+        size_hint_y: None
+        height: dp(40)
+        bold: True
+
+    # Input fields
+    RoundedInput:
+        id: principal
+        hint_text: "Principal Amount"
+
+    RoundedInput:
+        id: rate
+        hint_text: "Rate (%)"
+
+    RoundedInput:
+        id: years
+        hint_text: "Years"
+
+    RoundedInput:
+        id: compounds
+        hint_text: "Compounds per Year"
+
+    # Calculate button
+    RoundedButton:
+        text: "Calculate"
+        size_hint_y: None
+        height: dp(50)
+        on_press: app.calculate(principal.text, rate.text, years.text, compounds.text)
+
+    # Output display
+    RoundedLabel:
+        id: result
+        text: "Result will appear here"
+"""
+
+# 🔹 Custom Widgets with Rounded Corners
+class RoundedInput(TextInput):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.size_hint_y = None
+        self.height = dp(45)
+        self.font_size = "16sp"
+        self.background_normal = ""
+        self.background_active = ""
+        self.background_color = (0, 0, 0, 0)
+        self.padding = [dp(12), dp(12), dp(12), dp(12)]
         with self.canvas.before:
-            Color(1, 1, 1, 1)  # white background
-            self.rect = RoundedRectangle(radius=[15], pos=self.pos, size=self.size)
+            Color(0.95, 0.95, 0.95, 1)
+            self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[10])
         self.bind(pos=self.update_rect, size=self.update_rect)
 
     def update_rect(self, *args):
@@ -20,97 +72,62 @@ class RoundedBox(Widget):
         self.rect.size = self.size
 
 
-class RoundedTextInput(BoxLayout):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.padding = 5
-        self.orientation = "vertical"
-        self.rounded = RoundedBox()
-        self.add_widget(self.rounded)
-        self.textinput = TextInput(
-            multiline=False,
-            background_color=(0, 0, 0, 0),  # transparent background
-            foreground_color=(0, 0, 0, 1),
-            size_hint=(1, 1)
-        )
-        self.add_widget(self.textinput)
-
-
 class RoundedButton(Button):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.background_normal = ''
-        self.background_down = ''
-        self.background_color = (0.2, 0.6, 0.9, 1)  # blue button
-        self.color = (1, 1, 1, 1)  # white text
-        self.font_size = 18
-        self.bind(size=self.update_canvas, pos=self.update_canvas)
-
-    def update_canvas(self, *args):
-        self.canvas.before.clear()
+        self.background_normal = ""
+        self.background_down = ""
+        self.background_color = (0, 0, 0, 0)
+        self.color = (1, 1, 1, 1)
+        self.font_size = "16sp"
         with self.canvas.before:
-            Color(*self.background_color)
-            RoundedRectangle(pos=self.pos, size=self.size, radius=[15])
+            Color(0.2, 0.6, 1, 1)
+            self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[12])
+        self.bind(pos=self.update_rect, size=self.update_rect)
+
+    def update_rect(self, *args):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
 
-class CompoundingCalculator(BoxLayout):
+class RoundedLabel(Label):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.orientation = "vertical"
-        self.padding = 20
-        self.spacing = 15
+        self.size_hint_y = None
+        self.height = dp(60)
+        self.color = (0, 0, 0, 1)
+        self.valign = "middle"
+        self.halign = "center"
+        self.bind(size=self.setter("text_size"))
+        with self.canvas.before:
+            Color(0.9, 0.9, 0.95, 1)
+            self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[10])
+        self.bind(pos=self.update_rect, size=self.update_rect)
 
-        # Title
-        self.add_widget(Label(text="Compounding Calculator",
-                              font_size=24,
-                              bold=True,
-                              size_hint=(1, None),
-                              height=40))
-
-        # Fields
-        self.monthly = self.add_field("Monthly Contribution:")
-        self.current_age = self.add_field("Current Age:")
-        self.retirement_age = self.add_field("Retirement Age:")
-        self.interest = self.add_field("Yearly Interest (%):")
-
-        # Buttons
-        btn_layout = BoxLayout(size_hint=(1, None), height=50, spacing=20)
-        btn_layout.add_widget(RoundedButton(text="Calculate"))
-        btn_layout.add_widget(RoundedButton(text="Clear"))
-        self.add_widget(btn_layout)
-
-        # Output area
-        self.output = Label(text="Future value:\nTotal contributions:\nInterest earned:",
-                            halign="left",
-                            valign="top",
-                            size_hint=(1, None),
-                            height=120)
-        with self.output.canvas.before:
-            Color(1, 1, 1, 1)
-            self.bg = RoundedRectangle(radius=[15], pos=self.output.pos, size=self.output.size)
-        self.output.bind(pos=self.update_output, size=self.update_output)
-        self.add_widget(self.output)
-
-    def add_field(self, label_text):
-        self.add_widget(Label(text=label_text,
-                              font_size=16,
-                              bold=True,
-                              size_hint=(1, None),
-                              height=30,
-                              halign="left"))
-        field = RoundedTextInput(size_hint=(1, None), height=50)
-        self.add_widget(field)
-        return field
-
-    def update_output(self, *args):
-        self.bg.pos = self.output.pos
-        self.bg.size = self.output.size
+    def update_rect(self, *args):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
 
-class CompoundingApp(App):
+# 🔹 Main App
+class CompoundApp(App):
     def build(self):
-        return CompoundingCalculator()
+        return Builder.load_string(KV)
+
+    def calculate(self, p, r, t, n):
+        try:
+            P = float(p)
+            R = float(r) / 100.0
+            T = float(t)
+            N = float(n)
+
+            A = P * math.pow((1 + R / N), N * T)
+            result_text = f"Final Amount: {A:,.2f}"
+        except Exception:
+            result_text = "⚠️ Please enter valid numbers"
+
+        self.root.ids.result.text = result_text
 
 
 if __name__ == "__main__":
-    CompoundingApp().run()
+    CompoundApp().run()
