@@ -157,17 +157,17 @@ class LabeledInput(BoxLayout):
         super().__init__(**kwargs)
         self.orientation = "vertical"
         self.size_hint_y = None
-        self.height = dp(90)  # more space so label + input fit nicely
+        self.height = dp(90)
         self.padding = [dp(10), dp(8), dp(10), dp(8)]
         self.spacing = dp(6)
 
         # Rounded background
         with self.canvas.before:
-            Color(1, 1, 1, 1)  # white background for stronger contrast
+            Color(1, 1, 1, 1)  # white background
             self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[10])
         self.bind(pos=self.update_rect, size=self.update_rect)
 
-        # Label (always visible, small text at top-left)
+        # Label (small, always visible at top-left)
         self.label = Label(
             text=label_text,
             font_size="14sp",
@@ -175,16 +175,17 @@ class LabeledInput(BoxLayout):
             height=dp(20),
             halign="left",
             valign="middle",
-            color=(0.2, 0.4, 0.8, 1)  # 🔹 blue text (matches header, visible)
+            color=(0.2, 0.4, 0.8, 1)  # 🔹 blue, visible
         )
-        self.label.bind(size=self.label.setter("text_size"))
+        # 🔹 THIS makes the label render correctly
+        self.label.bind(size=self._update_label_text_size)
 
         # Input field
         self.input = TextInput(
             multiline=False,
             size_hint_y=1,
             font_size="16sp",
-            foreground_color=(0, 0, 0, 1),  # black input text
+            foreground_color=(0, 0, 0, 1),
             background_normal="",
             background_active="",
             background_color=(0, 0, 0, 0),
@@ -194,9 +195,13 @@ class LabeledInput(BoxLayout):
         self.add_widget(self.label)
         self.add_widget(self.input)
 
+    def _update_label_text_size(self, instance, size):
+        instance.text_size = (size[0], None)  # 🔹 constrain text width, prevents disappearing
+
     def update_rect(self, *args):
         self.rect.pos = self.pos
         self.rect.size = self.size
+
         
 
 if __name__ == "__main__":
