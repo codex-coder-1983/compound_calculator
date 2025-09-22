@@ -157,25 +157,25 @@ class LabeledInput(BoxLayout):
         super().__init__(**kwargs)
         self.orientation = "vertical"
         self.size_hint_y = None
-        self.height = dp(70)
-        self.padding = [dp(8), dp(4), dp(8), dp(4)]
-        self.spacing = dp(2)
+        self.height = dp(90)  # more space so label + input fit nicely
+        self.padding = [dp(10), dp(8), dp(10), dp(8)]
+        self.spacing = dp(6)
 
         # Rounded background
         with self.canvas.before:
-            Color(0.95, 0.95, 0.95, 1)
+            Color(1, 1, 1, 1)  # white background for stronger contrast
             self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[10])
         self.bind(pos=self.update_rect, size=self.update_rect)
 
-        # Label (small, always visible)
+        # Label (always visible, small text at top-left)
         self.label = Label(
             text=label_text,
-            font_size="12sp",
+            font_size="14sp",
             size_hint_y=None,
-            height=dp(16),
+            height=dp(20),
             halign="left",
             valign="middle",
-            color=(0, 0, 0, 1)
+            color=(0.2, 0.4, 0.8, 1)  # 🔹 blue text (matches header, visible)
         )
         self.label.bind(size=self.label.setter("text_size"))
 
@@ -184,10 +184,11 @@ class LabeledInput(BoxLayout):
             multiline=False,
             size_hint_y=1,
             font_size="16sp",
+            foreground_color=(0, 0, 0, 1),  # black input text
             background_normal="",
             background_active="",
             background_color=(0, 0, 0, 0),
-            padding=[dp(4), dp(4), dp(4), dp(4)]
+            padding=[dp(6), dp(6), dp(6), dp(6)]
         )
 
         self.add_widget(self.label)
