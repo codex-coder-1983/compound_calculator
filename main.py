@@ -175,7 +175,7 @@ class LabeledInput(BoxLayout):
             height=dp(16),
             halign="left",
             valign="middle",
-            color=(0.3, 0.3, 0.3, 1)
+            color=(0, 0, 0, 1)
         )
         self.label.bind(size=self.label.setter("text_size"))
 
